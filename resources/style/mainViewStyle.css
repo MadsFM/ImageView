@@ -1,0 +1,38 @@
+.root {
+    -fx-font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    -fx-base: #C8C8CD;
+    -fx-background: #8B8680;
+}
+
+.button {
+    -fx-background-color: #2D5DA1;
+    -fx-text-fill: black;
+    -fx-background-radius: 5;
+    -fx-border-radius: 5;
+    -fx-padding: 5 22 5 22;
+}
+
+.button:hover {
+    -fx-background-color: #436CB9;
+}
+
+.table-view {
+    -fx-background-color: #C8C8CD;
+    -fx-border-color: #353839;
+    -fx-border-radius: 5;
+}
+
+.table-view .column-header-background .label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #353839;
+}
+
+.image-view {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 2);
+}
+
+.hbox {
+    -fx-background-color: #8B8680;
+}
+
+
