@@ -49,7 +49,7 @@ public class MainViewController {
     private void loadImagesDetails(String details){
         File folder = new File(details);
         File[] listOfImages = folder.listFiles();
-        ObservableList<Images> images = FXCollections.observableArrayList();
+        imageList.clear();
 
         if (listOfImages != null) {
             for (File file : listOfImages) {
@@ -58,12 +58,12 @@ public class MainViewController {
                     String imagePath = file.getAbsolutePath();
 
                     if (imageName.endsWith(".png") || imageName.endsWith(".jpeg") || imageName.endsWith(".jpg")) {
-                        images.add(new Images(imageName, imagePath));
+                        imageList.add(new Images(imageName, imagePath));
                     }
                 }
             }
         }
-        tbVImageView.setItems(images);
+        tbVImageView.setItems(imageList);
     }
 
     @FXML
