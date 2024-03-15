@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="/style/mainViewStyle.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.MainViewController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="800.0" stylesheets="/style/mainViewStyle.css" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="GUI.MainViewController">
    <center>
       <ImageView fx:id="iVImages" fitHeight="535.0" fitWidth="626.0" pickOnBounds="true" preserveRatio="true" BorderPane.alignment="CENTER">
          <image>
@@ -19,9 +19,9 @@
    <bottom>
       <HBox alignment="CENTER_LEFT" prefHeight="41.0" prefWidth="800.0" spacing="10.0" BorderPane.alignment="CENTER">
          <children>
-            <Button mnemonicParsing="false" text="Load Images" />
-            <Button mnemonicParsing="false" text="Previous" />
-            <Button mnemonicParsing="false" text="Next" />
+            <Button fx:id="btnLoadImage" mnemonicParsing="false" onAction="#loadImageToData" text="Load Images" />
+            <Button fx:id="btnPrevious" mnemonicParsing="false" onAction="#goToPreviousPicture" text="Previous" />
+            <Button fx:id="btnNext" mnemonicParsing="false" onAction="#goToNextPicture" text="Next" />
          </children>
          <BorderPane.margin>
             <Insets />
