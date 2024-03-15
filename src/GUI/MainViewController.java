@@ -102,21 +102,25 @@ public class MainViewController {
         }
     }
 
+
     @FXML
     private void goToPreviousPicture(ActionEvent actionEvent) {
-        if (currentIndex >0) {
+        if (currentIndex > 0) {
             currentIndex--;
-            showImage();
+        } else {
+            currentIndex = imageList.size() - 1; // Reset
         }
-
+        showImage();
     }
 
     @FXML
     private void goToNextPicture(ActionEvent actionEvent) {
-        if (currentIndex < imageList.size() -1) {
+        if (currentIndex < imageList.size() - 1) {
             currentIndex++;
-            showImage();
+        } else {
+            currentIndex = 0; // Reset
         }
-
+        showImage();
     }
+
 }
