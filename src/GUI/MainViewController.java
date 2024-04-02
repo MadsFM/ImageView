@@ -1,18 +1,23 @@
 package GUI;
 
 import BE.Images;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.image.PixelReader;
+import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 
+import java.awt.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -25,11 +30,15 @@ public class MainViewController {
     @FXML
     private TableColumn<Images, String> imageNameCol, imagePathCol;
     @FXML
-    private Button btnLoadImage,btnNext,btnPrevious;
+    private Button btnLoadImage,btnNext,btnPrevious, btnStart, btnStop, btnCountPixels;
+    private Thread showThread;
 
     @FXML
     private ObservableList<Images> imageList = FXCollections.observableArrayList();;
     private int currentIndex = -1;
+    @FXML
+    private Label lblRed, lblGreen, lblBlue;
+
 
 
     @FXML
@@ -123,4 +132,73 @@ public class MainViewController {
         showImage();
     }
 
+    @FXML
+    private void startSlidshow(ActionEvent actionEvent){
+        // initiaere vores tråd.
+        if (showThread == null || showThread.isAlive()){
+            Runnable slideshow = () -> {
+                try {
+                    //så længe der er billeder der kan vises kører den
+                    while (!Thread.currentThread().isInterrupted()) {
+                        Platform.runLater(() -> goToNextPicture(null));
+                        //1.5 sek forsinkelse
+                        Thread.sleep(1500);
+                    }
+                } catch (InterruptedException ie){
+                    //hvis den ikke kan, så bliver den stoppet, så while loopet kan brydes.
+                    Thread.currentThread().interrupt();
+                }
+            };
+            showThread = new Thread(slideshow);
+            showThread.start();
+        }
+    }
+
+    @FXML
+    private void stopSlideshow(){
+        if (showThread != null){
+            showThread.interrupt();
+        }
+    }
+
+    private void colorCounter(Image image){
+        new Thread(() -> {
+           int redPixels = 0, greenPixels = 0, bluePixels = 0;
+            PixelReader pReader = image.getPixelReader();
+            if (pReader != null) {
+                for (int y = 0; y < image.getHeight(); y++) {
+                    for (int x = 0; x < image.getWidth(); x++) {
+                        Color color = pReader.getColor(x, y);
+                        double red = color.getRed();
+                        double green = color.getGreen();
+                        double blue = color.getBlue();
+                        if (red > green && red > blue){
+                            redPixels++;
+                        } else if (blue > green && blue > red) {
+                            bluePixels++;
+                        } else if (green > red && green > blue) {
+                            bluePixels++;
+                        }
+                    }
+                }
+        }
+            final int finalRedPixels = redPixels;
+            final int finalGreenPixels = greenPixels;
+            final int finalBluePixels = bluePixels;
+
+            Platform.runLater(() ->{
+                lblRed.setText("Red pixels: " + finalRedPixels);
+                lblBlue.setText("Blue pixels: " + finalBluePixels);
+                lblGreen.setText("Green pixels: " + finalGreenPixels);
+            });
+        }).start();
+    }
+
+    @FXML
+    private void startCounting(ActionEvent actionEvent) {
+        Image currentImage = iVImages.getImage();
+        if (currentImage != null){
+            colorCounter(currentImage);
+        }
+    }
 }
