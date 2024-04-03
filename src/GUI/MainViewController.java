@@ -51,6 +51,7 @@ public class MainViewController {
             currentIndex = 0;
             showImage();
         }
+        btnStop.setVisible(false);
     }
 
 
@@ -134,7 +135,7 @@ public class MainViewController {
 
     @FXML
     private void startSlidshow(ActionEvent actionEvent){
-        // initiaere vores tråd.
+        // initiere vores tråd.
         if (showThread == null || showThread.isAlive()){
             Runnable slideshow = () -> {
                 try {
@@ -149,6 +150,7 @@ public class MainViewController {
                     Thread.currentThread().interrupt();
                 }
             };
+            btnStop.setVisible(true);
             showThread = new Thread(slideshow);
             showThread.start();
         }
@@ -163,15 +165,20 @@ public class MainViewController {
 
     private void colorCounter(Image image){
         new Thread(() -> {
+            // lavet tre variabler til hver farve
            int redPixels = 0, greenPixels = 0, bluePixels = 0;
             PixelReader pReader = image.getPixelReader();
             if (pReader != null) {
+                //kører gennem hvert billede i højden og bredden og tæller pixels
                 for (int y = 0; y < image.getHeight(); y++) {
                     for (int x = 0; x < image.getWidth(); x++) {
                         Color color = pReader.getColor(x, y);
+                        //for hvert pixel der er talt, får vi den respektive farve
                         double red = color.getRed();
                         double green = color.getGreen();
                         double blue = color.getBlue();
+                        //kontrol for hvilken variable der skal ++
+                        //gøres for hver farve
                         if (red > green && red > blue){
                             redPixels++;
                         } else if (blue > green && blue > red) {
@@ -182,6 +189,8 @@ public class MainViewController {
                     }
                 }
         }
+            // sætter dem som final da @finalRedPixels, finalGreenPixels, finalBluePixels
+            // ikke skal kunne ændres fra andre metoder eller klasser.
             final int finalRedPixels = redPixels;
             final int finalGreenPixels = greenPixels;
             final int finalBluePixels = bluePixels;
