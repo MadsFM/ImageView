@@ -1,10 +1,10 @@
 package BE;
 
-public class Images {
+public class Image {
     private final String imageName;
     private final String imagePath;
 
-    public Images(String imageName, String imagePath) {
+    public Image(String imageName, String imagePath) {
         this.imageName = imageName;
         this.imagePath = imagePath;
     }

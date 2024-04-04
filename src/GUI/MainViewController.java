@@ -1,6 +1,7 @@
 package GUI;
 
-import BE.Images;
+import BE.Image;
+import BLL.ImageManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -11,30 +12,27 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.PixelReader;
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 
-import java.awt.*;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 public class MainViewController {
+    ImageManager imageManager = new ImageManager();
     @FXML
     private ImageView iVImages;
     @FXML
-    private TableView<Images> tbVImageView;
+    private TableView<Image> tbVImageView;
     @FXML
-    private TableColumn<Images, String> imageNameCol, imagePathCol;
+    private TableColumn<Image, String> imageNameCol, imagePathCol;
     @FXML
     private Button btnLoadImage,btnNext,btnPrevious, btnStart, btnStop, btnCountPixels;
-    private Thread showThread;
+
 
     @FXML
-    private ObservableList<Images> imageList = FXCollections.observableArrayList();;
+    private ObservableList<Image> imageList = FXCollections.observableArrayList();;
     private int currentIndex = -1;
     @FXML
     private Label lblRed, lblGreen, lblBlue;
@@ -46,8 +44,9 @@ public class MainViewController {
         String pathToImages = "resources/images";
         imageNameCol.setCellValueFactory(new PropertyValueFactory<>("imageName"));
         imagePathCol.setCellValueFactory(new PropertyValueFactory<>("imagePath"));
-        loadImagesDetails(pathToImages);
-        if (!imageList.isEmpty()) {
+        imageManager.loadImagesFromDirectory(pathToImages);
+        tbVImageView.setItems(imageManager.getImages());
+        if (!imageList.isEmpty()){
             currentIndex = 0;
             showImage();
         }
@@ -59,7 +58,8 @@ public class MainViewController {
     private void loadImagesDetails(String details){
         File folder = new File(details);
         File[] listOfImages = folder.listFiles();
-        imageList.clear();
+        ObservableList<Image> tempImageList = FXCollections.observableArrayList();
+
 
         if (listOfImages != null) {
             for (File file : listOfImages) {
@@ -68,12 +68,16 @@ public class MainViewController {
                     String imagePath = file.getAbsolutePath();
 
                     if (imageName.endsWith(".png") || imageName.endsWith(".jpeg") || imageName.endsWith(".jpg")) {
-                        imageList.add(new Images(imageName, imagePath));
+                        tempImageList.add(new Image(imageName, imagePath));
                     }
                 }
             }
         }
-        tbVImageView.setItems(imageList);
+        Platform.runLater(()-> {
+            imageList.clear();
+            imageList.addAll(tempImageList);
+            tbVImageView.setItems(imageList);
+        });
     }
 
     @FXML
@@ -106,108 +110,62 @@ public class MainViewController {
 
     private void showImage(){
         if (currentIndex >= 0 && currentIndex < imageList.size()) {
-            Images currentImage = imageList.get(currentIndex);
-            Image image = new Image(new File(currentImage.getImagePath()).toURI().toString());
+            Image currentImage = imageList.get(currentIndex);
+            javafx.scene.image.Image image = new javafx.scene.image.Image(new File(currentImage.getImagePath()).toURI().toString());
             iVImages.setImage(image);
         }
     }
 
+    private void presentPicture(Image image) {
+        if (image != null) {
+            javafx.scene.image.Image fxImage = new javafx.scene.image.Image(new File(image.getImagePath()).toURI().toString());
+            iVImages.setImage(fxImage);
+        }
+    }
+
+
 
     @FXML
     private void goToPreviousPicture(ActionEvent actionEvent) {
-        if (currentIndex > 0) {
-            currentIndex--;
-        } else {
-            currentIndex = imageList.size() - 1; // Reset
+        Image image = imageManager.goToPreviousPicture();
+        if (image != null){
+            presentPicture(image);
         }
-        showImage();
     }
 
     @FXML
     private void goToNextPicture(ActionEvent actionEvent) {
-        if (currentIndex < imageList.size() - 1) {
-            currentIndex++;
-        } else {
-            currentIndex = 0; // Reset
+        Image image = imageManager.goToNextPicture();
+        if (image != null){
+           presentPicture(image);
         }
-        showImage();
     }
 
     @FXML
     private void startSlidshow(ActionEvent actionEvent){
-        // initiere vores tråd.
-        if (showThread == null || showThread.isAlive()){
-            Runnable slideshow = () -> {
-                try {
-                    //så længe der er billeder der kan vises kører den
-                    while (!Thread.currentThread().isInterrupted()) {
-                        Platform.runLater(() -> goToNextPicture(null));
-                        //1.5 sek forsinkelse
-                        Thread.sleep(1500);
-                    }
-                } catch (InterruptedException ie){
-                    //hvis den ikke kan, så bliver den stoppet, så while loopet kan brydes.
-                    Thread.currentThread().interrupt();
-                }
-            };
-            btnStop.setVisible(true);
-            showThread = new Thread(slideshow);
-            showThread.start();
-        }
+        imageManager.startSlidshow();
+        btnStop.setVisible(true);
+
     }
 
     @FXML
     private void stopSlideshow(){
-        if (showThread != null){
-            showThread.interrupt();
-        }
+        imageManager.stopSlideshow();
+        btnStop.setVisible(false);
     }
 
-    private void colorCounter(Image image){
-        new Thread(() -> {
-            // lavet tre variabler til hver farve
-           int redPixels = 0, greenPixels = 0, bluePixels = 0;
-            PixelReader pReader = image.getPixelReader();
-            if (pReader != null) {
-                //kører gennem hvert billede i højden og bredden og tæller pixels
-                for (int y = 0; y < image.getHeight(); y++) {
-                    for (int x = 0; x < image.getWidth(); x++) {
-                        Color color = pReader.getColor(x, y);
-                        //for hvert pixel der er talt, får vi den respektive farve
-                        double red = color.getRed();
-                        double green = color.getGreen();
-                        double blue = color.getBlue();
-                        //kontrol for hvilken variable der skal ++
-                        //gøres for hver farve
-                        if (red > green && red > blue){
-                            redPixels++;
-                        } else if (blue > green && blue > red) {
-                            bluePixels++;
-                        } else if (green > red && green > blue) {
-                            bluePixels++;
-                        }
-                    }
-                }
-        }
-            // sætter dem som final da @finalRedPixels, finalGreenPixels, finalBluePixels
-            // ikke skal kunne ændres fra andre metoder eller klasser.
-            final int finalRedPixels = redPixels;
-            final int finalGreenPixels = greenPixels;
-            final int finalBluePixels = bluePixels;
-
-            Platform.runLater(() ->{
-                lblRed.setText("Red pixels: " + finalRedPixels);
-                lblBlue.setText("Blue pixels: " + finalBluePixels);
-                lblGreen.setText("Green pixels: " + finalGreenPixels);
-            });
-        }).start();
-    }
 
     @FXML
     private void startCounting(ActionEvent actionEvent) {
-        Image currentImage = iVImages.getImage();
-        if (currentImage != null){
-            colorCounter(currentImage);
+        javafx.scene.image.Image currentImage = iVImages.getImage();
+        if (currentImage != null) {
+            imageManager.colorCounter(currentImage, (redPixels, greenPixels, bluePixels) -> {
+                Platform.runLater(() -> {
+                    lblRed.setText("Red pixels: " + redPixels);
+                    lblBlue.setText("Blue pixels: " + bluePixels);
+                    lblGreen.setText("Green pixels: " + greenPixels);
+                });
+            });
         }
     }
 }
