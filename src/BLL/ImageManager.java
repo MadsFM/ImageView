@@ -32,6 +32,12 @@ public class ImageManager {
         loadImagesFromDirectory(pathToImages);
     }
 
+    public ImageManager(Consumer<Image> imageDisplay) {
+        this.imageDisplay = imageDisplay;
+    }
+
+    public ImageManager() {
+    }
 
     public void loadImagesFromDirectory(String directoryPath) {
         File folder = new File(directoryPath);

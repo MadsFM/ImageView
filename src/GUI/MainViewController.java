@@ -20,7 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 public class MainViewController {
-    ImageManager imageManager = new ImageManager();
+    ImageManager imageManager;
     @FXML
     private ImageView iVImages;
     @FXML
@@ -41,6 +41,10 @@ public class MainViewController {
 
     @FXML
     private void initialize(){
+        imageManager = new ImageManager(image -> Platform.runLater(() -> {
+            javafx.scene.image.Image fxImage = new javafx.scene.image.Image(new File(image.getImagePath()).toURI().toString(), true);
+            iVImages.setImage(fxImage);
+        }));
         String pathToImages = "resources/images";
         imageNameCol.setCellValueFactory(new PropertyValueFactory<>("imageName"));
         imagePathCol.setCellValueFactory(new PropertyValueFactory<>("imagePath"));
